@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Each job grants only what it needs.
+permissions: {}
+
+jobs:
+  # Installs the cask as a user would: checks the sha256, the quarantine removal, the daemon and
+  # the `tokenmtr` link, then uninstalls it. Renovate automerges a release bump only when it passes.
+  cask:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Tap this checkout
+        run: brew tap spnngl/tap "$GITHUB_WORKSPACE"
+      - run: brew style spnngl/tap
+      - run: brew install --cask spnngl/tap/tokenmtr
+      - name: The app is not quarantined
+        run: |
+          if xattr -p com.apple.quarantine /Applications/TokenMtr.app 2> /dev/null; then
+            echo "::error::TokenMtr.app is still quarantined"
+            exit 1
+          fi
+      - run: tokenmtr --version
+      - run: tokenmtr service status | grep -F "service running"
+      - run: brew uninstall --cask --zap spnngl/tap/tokenmtr
+      - name: The daemon is gone
+        run: test ! -e ~/Library/LaunchAgents/dev.tokenmtr.daemon.plist
+
+  # Shared workflow of spnngl/.github, at @main on purpose (its Renovate preset never pins it).
+  renovate:
+    permissions:
+      contents: read
+    uses: spnngl/.github/.github/workflows/renovate.yml@main

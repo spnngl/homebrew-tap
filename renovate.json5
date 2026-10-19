@@ -1,0 +1,26 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    // The shared preset at HEAD of main.
+    "extends": ["github>spnngl/.github:renovate.default.json5"],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": "Cask version and sha256 from the spnngl/tokenmtr GitHub release. The release tag is `v<version>`, so the template adds the `v` and the replacement drops it; the new sha256 comes from the release's SHA256SUMS.",
+            "managerFilePatterns": ["/^Casks/tokenmtr\\.rb$/"],
+            "matchStrings": [
+                "version \"(?<version>[^\"]+)\"\\n\\s*sha256 \"(?<currentDigest>[0-9a-f]{64})\""
+            ],
+            "datasourceTemplate": "github-release-attachments",
+            "depNameTemplate": "spnngl/tokenmtr",
+            "currentValueTemplate": "v{{{version}}}",
+            "autoReplaceStringTemplate": "version \"{{{replace '^v' '' newValue}}}\"\n  sha256 \"{{{newDigest}}}\""
+        }
+    ],
+    "packageRules": [
+        {
+            "description": "TokenMtr releases: automerge once CI installed the new cask.",
+            "matchDepNames": ["spnngl/tokenmtr"],
+            "automerge": true
+        }
+    ]
+}
