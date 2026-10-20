@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 cask "tokenmtr" do
   # Renovate bumps both lines from the spnngl/tokenmtr release and its SHA256SUMS (renovate.json5).
   version "0.2.0"
@@ -23,30 +25,30 @@ cask "tokenmtr" do
     run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/TokenMtr.app"]
   end
 
-  uninstall quit: "dev.tokenmtr.app"
-
   # The app's onboarding installs the daemon: Homebrew sandboxes install steps (no launchd, a
-  # throwaway HOME), so the cask cannot. `uninstall` also runs on `brew upgrade`, so removing the
-  # daemon there would stop it on every update; the app restarts an outdated daemon at launch.
-  zap launchctl: "dev.tokenmtr.daemon",
-      trash:     [
-        "~/.config/tokenmtr",
-        "~/Library/Application Support/dev.tokenmtr.app",
-        "~/Library/Caches/dev.tokenmtr.app",
-        "~/Library/HTTPStorages/dev.tokenmtr.app",
-        # The app's "Launch at login" item (tauri-plugin-autostart), not the daemon.
-        "~/Library/LaunchAgents/TokenMtr.plist",
-        "~/Library/Logs/tokenmtr",
-        "~/Library/Preferences/dev.tokenmtr.app.plist",
-        "~/Library/Saved Application State/dev.tokenmtr.app.savedState",
-        "~/Library/WebKit/dev.tokenmtr.app",
-      ]
+  # throwaway HOME), so the cask cannot. `uninstall` also runs on `brew upgrade`, which then reopens
+  # the app it quit; the app reinstalls a missing daemon at launch once onboarding is done.
+  uninstall launchctl: "dev.tokenmtr.daemon",
+            quit:      "dev.tokenmtr.app"
+
+  zap trash: [
+    "~/.config/tokenmtr",
+    "~/Library/Application Support/dev.tokenmtr.app",
+    "~/Library/Caches/dev.tokenmtr.app",
+    "~/Library/HTTPStorages/dev.tokenmtr.app",
+    # The app's "Launch at login" item (tauri-plugin-autostart), not the daemon.
+    "~/Library/LaunchAgents/TokenMtr.plist",
+    "~/Library/Logs/tokenmtr",
+    "~/Library/Preferences/dev.tokenmtr.app.plist",
+    "~/Library/Saved Application State/dev.tokenmtr.app.savedState",
+    "~/Library/WebKit/dev.tokenmtr.app",
+  ]
 
   caveats <<~EOS
     Open TokenMtr once: its onboarding installs the background daemon
     (LaunchAgent dev.tokenmtr.daemon), or run `tokenmtr service install`.
-    `brew uninstall` keeps the daemon: run `tokenmtr service uninstall` first,
-    or use `brew uninstall --zap tokenmtr`, which also deletes the config,
-    the usage store and its backups.
+    `brew upgrade` removes the daemon and the app reinstalls it at launch.
+    `brew uninstall --zap tokenmtr` also deletes the config, the usage store
+    and its backups.
   EOS
 end
