@@ -10,8 +10,9 @@ on:
 permissions: {}
 
 jobs:
-  # Installs the cask as a user would: checks the sha256, the quarantine removal, the daemon and
-  # the `tokenmtr` link, then uninstalls it. Renovate automerges a release bump only when it passes.
+  # Installs the cask as a user would: checks the sha256, the quarantine removal and the `tokenmtr`
+  # link, starts the daemon as the onboarding does, then zaps it all. Renovate automerges a release
+  # bump only when it passes.
   cask:
     runs-on: macos-latest
     permissions:
@@ -31,6 +32,8 @@ jobs:
             exit 1
           fi
       - run: tokenmtr --version
+      # The bundle path, as the app installs it: the LaunchAgent stores the path it was started from.
+      - run: /Applications/TokenMtr.app/Contents/MacOS/tokenmtr service install
       - run: tokenmtr service status | grep -F "service running"
       - run: brew uninstall --cask --zap spnngl/tap/tokenmtr
       - name: The daemon is gone
