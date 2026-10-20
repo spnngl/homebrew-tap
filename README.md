@@ -13,7 +13,7 @@ brew install --cask spnngl/tap/tokenmtr
 ## tokenmtr
 
 - The app is signed with the self-signed certificate `TokenMtr Local Signing`, not notarised. The cask removes the quarantine flag so that Gatekeeper does not block the first launch.
-- Installing or upgrading starts the background daemon (LaunchAgent `dev.tokenmtr.daemon`). `brew uninstall` stops and removes it. `brew uninstall --zap` also deletes the config, the usage store and its backups.
+- Installing or upgrading starts the background daemon (LaunchAgent `dev.tokenmtr.daemon`). `brew uninstall` stops and removes it. `brew uninstall --zap` also deletes the config, the usage store and its backups, and the app's launch-at-login item.
 - `tokenmtr` on the `PATH` is the CLI inside `TokenMtr.app`.
 
 ## Updates
