@@ -10,20 +10,25 @@ on:
 permissions: {}
 
 jobs:
-  # Installs the cask as a user would: checks the sha256, the quarantine removal and the `tokenmtr`
-  # link, starts the daemon as the onboarding does, then zaps it all. Renovate automerges a release
-  # bump only when it passes.
+  # Audits the cask, then installs it as a user would: checks the sha256, the quarantine removal and
+  # the `tokenmtr` link, starts the daemon as the onboarding does, then checks that `uninstall`
+  # removes it. Renovate automerges a release bump only when it passes.
   cask:
     runs-on: macos-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Tap this checkout
-        run: brew tap spnngl/tap "$GITHUB_WORKSPACE"
+        run: |
+          brew tap spnngl/tap "$GITHUB_WORKSPACE"
+          brew trust spnngl/tap
       - run: brew style spnngl/tap
+      # Checks the description, URL, livecheck and version; not the signing, which only official
+      # taps or `--signing` audit.
+      - run: brew audit --cask --strict --online spnngl/tap/tokenmtr
       - run: brew install --cask spnngl/tap/tokenmtr
       - name: The app is not quarantined
         run: |
@@ -35,7 +40,7 @@ jobs:
       # The bundle path, as the app installs it: the LaunchAgent stores the path it was started from.
       - run: /Applications/TokenMtr.app/Contents/MacOS/tokenmtr service install
       - run: tokenmtr service status | grep -F "service running"
-      - run: brew uninstall --cask --zap spnngl/tap/tokenmtr
+      - run: brew uninstall --cask spnngl/tap/tokenmtr
       - name: The daemon is gone
         run: test ! -e ~/Library/LaunchAgents/dev.tokenmtr.daemon.plist
 
