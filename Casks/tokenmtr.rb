@@ -40,6 +40,8 @@ cask "tokenmtr" do
     "~/Library/Application Support/dev.tokenmtr.app",
     "~/Library/Caches/dev.tokenmtr.app",
     "~/Library/HTTPStorages/dev.tokenmtr.app",
+    # The app's "Launch at login" item (tauri-plugin-autostart), not the daemon.
+    "~/Library/LaunchAgents/TokenMtr.plist",
     "~/Library/Logs/tokenmtr",
     "~/Library/Preferences/dev.tokenmtr.app.plist",
     "~/Library/Saved Application State/dev.tokenmtr.app.savedState",
