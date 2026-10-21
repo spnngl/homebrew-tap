@@ -9,12 +9,19 @@ on:
 # Each job grants only what it needs.
 permissions: {}
 
+# Cancels the run of an outdated pull request commit; runs on main all complete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Audits the cask, then installs it as a user would: checks the sha256, the quarantine removal and
-  # the `tokenmtr` link, starts the daemon as the onboarding does, then checks that `uninstall`
-  # removes it. Renovate automerges a release bump only when it passes.
+  # the `tokenmtr` link, starts the daemon as the onboarding does, then checks that
+  # `uninstall --zap` removes it. Renovate automerges a release bump only when it passes.
   cask:
     runs-on: macos-latest
+    # A run takes about 2 minutes.
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -26,9 +33,10 @@ jobs:
           brew tap spnngl/tap "$GITHUB_WORKSPACE"
           brew trust spnngl/tap
       - run: brew style spnngl/tap
-      # Checks the description, URL, livecheck and version; not the signing, which only official
-      # taps or `--signing` audit.
-      - run: brew audit --cask --strict --online spnngl/tap/tokenmtr
+      # Checks the description, URL and version; not the signing, which only official taps or
+      # `--signing` audit. Nor that the version is the latest release (`livecheck_version`): a new
+      # release would fail every other pull request until Renovate's bump merges.
+      - run: brew audit --cask --strict --online --except=livecheck_version spnngl/tap/tokenmtr
       - run: brew install --cask spnngl/tap/tokenmtr
       - name: The app is not quarantined
         run: |
@@ -40,6 +48,7 @@ jobs:
       # The bundle path, as the app installs it: the LaunchAgent stores the path it was started from.
       - run: /Applications/TokenMtr.app/Contents/MacOS/tokenmtr service install
       - run: tokenmtr service status | grep -F "service running"
-      - run: brew uninstall --cask spnngl/tap/tokenmtr
+      # --zap runs the `uninstall` stanza too, then the `zap` one.
+      - run: brew uninstall --cask --zap spnngl/tap/tokenmtr
       - name: The daemon is gone
         run: test ! -e ~/Library/LaunchAgents/dev.tokenmtr.daemon.plist
