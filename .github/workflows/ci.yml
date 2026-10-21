@@ -37,6 +37,10 @@ jobs:
       # `--signing` audit. Nor that the version is the latest release (`livecheck_version`): a new
       # release would fail every other pull request until Renovate's bump merges.
       - run: brew audit --cask --strict --online --except=livecheck_version spnngl/tap/tokenmtr
+        env:
+          # The online audits call the GitHub API: unauthenticated, the runner's IP shares 60 requests
+          # an hour.
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
       - run: brew install --cask spnngl/tap/tokenmtr
       - name: The app is not quarantined
         run: |
