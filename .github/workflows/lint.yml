@@ -1,0 +1,20 @@
+name: lint-workflows
+
+# actionlint and zizmor on the workflows when they change; zizmor is configured by .github/zizmor.yml.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/**"
+  pull_request:
+    paths:
+      - ".github/**"
+
+permissions: {}
+
+jobs:
+  lint:
+    permissions:
+      contents: read
+    uses: spnngl/.github/.github/workflows/lint-workflows.yml@main
