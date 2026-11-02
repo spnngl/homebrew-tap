@@ -2,8 +2,8 @@
 
 cask "tokenmtr" do
   # Renovate bumps both lines from the spnngl/tokenmtr release and its SHA256SUMS (renovate.json5).
-  version "0.4.0"
-  sha256 "40a1d8e0d9d524439663d844520c0e70765a4c815f6e1c3f2998fbfae4d77c91"
+  version "0.5.0"
+  sha256 "3f66a3d3e1d50e13189c22b9001913697fd14f1c164b7e95923f9e6725a53cf8"
 
   url "https://github.com/spnngl/tokenmtr/releases/download/v#{version}/TokenMtr_#{version}_universal.dmg"
   name "TokenMtr"
